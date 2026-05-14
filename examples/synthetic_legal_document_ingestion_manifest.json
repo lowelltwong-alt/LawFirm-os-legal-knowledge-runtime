@@ -1,0 +1,41 @@
+{
+  "schema_type": "legal-document-ingestion-manifest",
+  "schema_version": "v1",
+  "manifest_id": "lkim-synthetic-0001",
+  "corpus_id": "synthetic-legal-corpus-0001",
+  "source_collection_id": "synthetic-contract-fixtures",
+  "data_origin": "synthetic",
+  "contains_real_client_data": false,
+  "contains_real_matter_data": false,
+  "default_access_policy_ref": "policy.synthetic-only.v1",
+  "documents": [
+    {
+      "document_ref": "synthetic://contract/msa-001",
+      "title": "Synthetic Master Services Agreement",
+      "document_type": "contract",
+      "source_uri": "synthetic://fixtures/contracts/msa-001.txt",
+      "source_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "jurisdiction": "New York",
+      "matter_ref": null,
+      "client_ref": null,
+      "confidentiality_label": "synthetic",
+      "privilege_label": "none",
+      "retention_class": "synthetic-test",
+      "parser_profile": "legal-parser.contract.v1",
+      "permitted_indexes": [
+        "metadata",
+        "lexical",
+        "document_tree"
+      ],
+      "access_policy_ref": "policy.synthetic-only.v1",
+      "notes": "Synthetic fixture only; no real client or matter facts."
+    }
+  ],
+  "created_at": "2026-05-14T00:00:00Z",
+  "boundary_controls": {
+    "raw_payload_embedded": false,
+    "runtime_may_write_substrate": false,
+    "runtime_may_emit_exception_events": true,
+    "full_document_payload_allowed_to_lake": false
+  }
+}
