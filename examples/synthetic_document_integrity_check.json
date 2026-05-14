@@ -1,0 +1,25 @@
+{
+  "schema_id": "legal_document_integrity_check.v1",
+  "check_id": "ldic_synthetic_redline_001",
+  "synthetic": true,
+  "document_ref": "synthetic://document/redline-001",
+  "baseline_hash": "sha256:baseline_placeholder",
+  "candidate_hash": "sha256:candidate_placeholder",
+  "diff_ref": "synthetic://diff/redline-001",
+  "claim_refs_checked": [
+    "synthetic://claim/limitation-of-liability"
+  ],
+  "check_results": [
+    {
+      "check_type": "citation_preservation",
+      "status": "pass",
+      "detail": "synthetic citation refs preserved"
+    },
+    {
+      "check_type": "defined_term_preservation",
+      "status": "warn",
+      "detail": "synthetic defined term review required"
+    }
+  ],
+  "human_review_required": true
+}

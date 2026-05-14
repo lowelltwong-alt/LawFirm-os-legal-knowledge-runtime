@@ -1,0 +1,33 @@
+{
+  "schema_id": "legal_retrieval_eval_case.v1",
+  "eval_case_id": "lreval_contract_schedule_override_001",
+  "synthetic": true,
+  "task_type": "contract_review",
+  "bundle_type": "contract_review_context.v1",
+  "query": "What controls if the payment schedule conflicts with the main agreement?",
+  "input_refs": [
+    "synthetic://contract/msa-001"
+  ],
+  "expected_source_refs": [
+    "synthetic://contract/msa-001#section-payment",
+    "synthetic://contract/msa-001#schedule-a"
+  ],
+  "must_include_span_refs": [
+    "doc_syn_msa_001#schedule-a"
+  ],
+  "must_not_include_source_refs": [
+    "synthetic://contract/other-matter-decoy"
+  ],
+  "adversarial_features": [
+    "missing_schedule",
+    "definition_override",
+    "cross_matter_decoy"
+  ],
+  "grading_policy": {
+    "grade_on_final_bundle": true,
+    "require_source_coverage": true,
+    "require_no_forbidden_refs": true,
+    "notes": "Synthetic eval only."
+  },
+  "review_status": "draft"
+}

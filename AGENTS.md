@@ -2,6 +2,24 @@
 
 This repo is the Legal Knowledge Runtime, not the source of semantic authority.
 
+## Required AI entry behavior
+
+Before making changes in this repository, read:
+
+1. `AI_WORK_START_HERE.md`
+2. `../LawFirm-os-semantic-substrate/registry/ai-front-door-registry.json`
+3. `../LawFirm-os-semantic-substrate/governance/AI_FRONT_DOOR_BOUNDARY.md`
+
+This repository is one component of the LawFirm OS multi-repo kernel. Do not treat it as standalone.
+
+## Boundary rule
+
+This repository owns legal document ingestion preflight, document structure, retrieval planning, context bundle assembly, integrity checks, and local eval helpers. Canonical schemas, registries, governance doctrine, route authority, legal document type authority, endpoint authority, and the AI front door remain in `LawFirm-os-semantic-substrate`.
+
+## Required validation
+
+Before reporting success, run `python -m pytest -q` in this repository and the AI front-door integrity gate: `python ../LawFirm-os-semantic-substrate/scripts/validate_ai_front_door.py --substrate-root ../LawFirm-os-semantic-substrate`.
+
 ## Invariants
 
 - Read contracts from Semantic Substrate; never mutate them.
