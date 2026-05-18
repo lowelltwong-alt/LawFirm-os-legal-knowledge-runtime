@@ -8,6 +8,13 @@ from typing import Any
 from .bundle import assemble_synthetic_context_bundle, build_retrieval_trace
 from .contracts import load_substrate_snapshot
 from .evidence import write_evidence_dir, write_runtime_record
+from .grounding import (
+    emit_coverage_record,
+    emit_source_refs_for_manifest,
+    refs_for_evidence_packet,
+    source_refs_for_context_bundle,
+    validate_source_refs,
+)
 from .ingestion import validate_ingestion_manifest
 from .util import new_id, new_trace_id, read_json, sha256_file, utc_now, write_json
 
@@ -101,13 +108,52 @@ def run_assemble_bundle(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         return EXIT_INPUT, {"status": "blocked", "failures": preflight.failures}
     retrieval_plan_id = new_id("lkrp")
     retrievers = sorted(set(preflight.permitted_indexes) & {"metadata", "lexical", "document_tree"}) or ["metadata"]
-    trace = build_retrieval_trace(manifest, run_id=run_id, retrieval_plan_id=retrieval_plan_id, retrievers_used=retrievers)
-    bundle = assemble_synthetic_context_bundle(manifest, bundle_type=args.bundle_type, run_id=run_id, retrieval_trace_id=trace["retrieval_trace_id"])
+    source_refs, anomaly_records = emit_source_refs_for_manifest(manifest, run_id=run_id)
+    source_ref_failures = validate_source_refs(source_refs)
+    if source_ref_failures:
+        return EXIT_ARTIFACT, {"status": "blocked", "failures": source_ref_failures}
+    coverage_records = [
+        emit_coverage_record(
+            source_ref_id=source_ref["source_ref_id"],
+            run_id=run_id,
+            units_requested=1,
+            units_read=1,
+        )
+        for source_ref in source_refs
+    ]
+    trace = build_retrieval_trace(
+        manifest,
+        run_id=run_id,
+        retrieval_plan_id=retrieval_plan_id,
+        retrievers_used=retrievers,
+        source_refs=source_refs,
+        coverage_records=coverage_records,
+        anomaly_records=anomaly_records,
+    )
+    bundle = assemble_synthetic_context_bundle(
+        manifest,
+        bundle_type=args.bundle_type,
+        run_id=run_id,
+        retrieval_trace_id=trace["retrieval_trace_id"],
+        source_refs=source_refs_for_context_bundle(source_refs),
+        claim_refs=[],
+    )
     packet_dir = out_root / "evidence"
     evidence_manifest = write_evidence_dir(packet_dir, {
         "input_manifest.json": manifest,
         "preflight_result.json": preflight.to_dict(),
         "retrieval_trace.json": trace,
+        "source_refs.json": source_refs,
+        "coverage_records.json": coverage_records,
+        "untrusted_content_anomaly_records.json": anomaly_records,
+        "evidence_packet_refs.json": {
+            "source_refs": refs_for_evidence_packet(source_refs, "source_ref_id"),
+            "coverage_records": refs_for_evidence_packet(coverage_records, "coverage_record_id"),
+            "untrusted_content_anomaly_records": refs_for_evidence_packet(
+                anomaly_records,
+                "anomaly_record_id",
+            ),
+        },
         "legal_context_bundle.json": bundle,
     })
     record = write_runtime_record(
