@@ -9,6 +9,22 @@ from .safety import scan_retrieved_text_for_injection
 from .util import new_id, utc_now
 
 
+PASSAGE_SPAN_TYPES = frozenset(
+    {
+        "holding",
+        "rule",
+        "facts",
+        "reasoning",
+        "statute_section",
+        "regulation_paragraph",
+        "clause",
+        "docket_event",
+        "argument_section",
+        "unknown",
+    }
+)
+
+
 class SourceGroundingError(ValueError):
     """Raised when a source-grounded artifact cannot be emitted safely."""
 
@@ -59,6 +75,71 @@ def emit_source_ref(
     return SourceEmission(source_ref=source_ref, anomaly_records=anomaly_records)
 
 
+def emit_passage_ref(
+    *,
+    source_ref_id: str,
+    document: dict[str, Any],
+    span_text: str,
+    run_id: str,
+    span_type: str,
+    passage_ref_id: str | None = None,
+    citation_label: str | None = None,
+    citation_anchor: str | None = None,
+    start_offset: int | None = None,
+    end_offset: int | None = None,
+    heading_path: Sequence[str] | None = None,
+    parent_passage_ref_id: str | None = None,
+    related_passage_ref_ids: Sequence[str] | None = None,
+    cites_passage_ref_ids: Sequence[str] | None = None,
+    provider_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Emit a graph-ready PassageRef anchored to a SourceRef (structural / locator grounding, not token chunking)."""
+    if not source_ref_id:
+        raise SourceGroundingError("source_ref_id is required")
+    if not run_id:
+        raise SourceGroundingError("run_id is required")
+    if not span_text:
+        raise SourceGroundingError("span_text is required for passage hashing")
+    if span_type not in PASSAGE_SPAN_TYPES:
+        raise SourceGroundingError("span_type must be a substrate-registered passage span type")
+    locator: dict[str, Any] = {}
+    if start_offset is not None:
+        locator["start_offset"] = start_offset
+    if end_offset is not None:
+        locator["end_offset"] = end_offset
+    if heading_path:
+        locator["heading_path"] = list(heading_path)
+    meta = dict(provider_metadata) if provider_metadata else {}
+    passage: dict[str, Any] = {
+        "schema_version": "passage_ref.v1",
+        "passage_ref_id": passage_ref_id or new_id("pr"),
+        "source_ref_id": source_ref_id,
+        "source_kind": _source_kind(document),
+        "text_sha256": _bare_hash(span_text),
+        "span_type": span_type,
+        "canonical_status": "external_source_not_canon",
+        "run_id": run_id,
+    }
+    jurisdiction = str(document.get("jurisdiction") or "").strip()
+    if jurisdiction:
+        passage["jurisdiction"] = jurisdiction
+    if locator:
+        passage["locator"] = locator
+    if citation_label:
+        passage["citation_label"] = citation_label
+    if citation_anchor:
+        passage["citation_anchor"] = citation_anchor
+    if parent_passage_ref_id:
+        passage["parent_passage_ref_id"] = parent_passage_ref_id
+    if related_passage_ref_ids:
+        passage["related_passage_ref_ids"] = list(related_passage_ref_ids)
+    if cites_passage_ref_ids:
+        passage["cites_passage_ref_ids"] = list(cites_passage_ref_ids)
+    if meta:
+        passage["provider_metadata"] = meta
+    return passage
+
+
 def emit_source_refs_for_manifest(
     manifest: dict[str, Any],
     *,
@@ -90,6 +171,7 @@ def emit_coverage_record(
     units_requested: int,
     units_read: int,
     coverage_record_id: str | None = None,
+    passage_ref_id: str | None = None,
 ) -> dict[str, Any]:
     if not source_ref_id:
         raise SourceGroundingError("source_ref_id is required")
@@ -98,7 +180,7 @@ def emit_coverage_record(
     if units_requested < 0 or units_read < 0:
         raise SourceGroundingError("coverage units cannot be negative")
     partial = units_read < units_requested
-    return {
+    rec: dict[str, Any] = {
         "schema_version": "coverage_record.v1",
         "coverage_record_id": coverage_record_id or new_id("cov"),
         "source_ref_id": source_ref_id,
@@ -109,6 +191,9 @@ def emit_coverage_record(
         "coverage_quality": _coverage_quality(units_requested, units_read),
         "run_id": run_id,
     }
+    if passage_ref_id:
+        rec["passage_ref_id"] = passage_ref_id
+    return rec
 
 
 def emit_claim_ref(
@@ -120,6 +205,7 @@ def emit_claim_ref(
     verified_status: str = "pending",
     defect_record_id: str | None = None,
     claim_ref_id: str | None = None,
+    passage_ref_ids: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     if not claim_text:
         raise SourceGroundingError("claim_text is required")
@@ -140,6 +226,8 @@ def emit_claim_ref(
         "source_refs": [{"source_ref_id": ref} for ref in source_ref_ids],
         "run_id": run_id,
     }
+    if passage_ref_ids:
+        claim["passage_refs"] = [{"passage_ref_id": ref} for ref in passage_ref_ids]
     if defect_record_id:
         claim["defect_record_id"] = defect_record_id
     return claim
@@ -177,6 +265,7 @@ def emit_verification_record(
     defect_record_id: str | None = None,
     verified_at: str | None = None,
     verification_record_id: str | None = None,
+    passage_ref_ids: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     if verdict == "refuted" and not defect_record_id:
         raise SourceGroundingError("refuted verification requires defect_record_id or validation failure")
@@ -196,6 +285,8 @@ def emit_verification_record(
         rec["freshness_window_days"] = freshness_window_days
     if defect_record_id:
         rec["defect_record_id"] = defect_record_id
+    if passage_ref_ids:
+        rec["passage_refs"] = [{"passage_ref_id": ref} for ref in passage_ref_ids]
     return rec
 
 
@@ -233,6 +324,19 @@ def source_refs_for_context_bundle(source_refs: Iterable[dict[str, Any]]) -> lis
                 "source_ref_id": str(ref["source_ref_id"]),
                 "source_id": str(ref["source_id"]),
                 "content_hash": str(ref["content_hash"]),
+            }
+        )
+    return refs
+
+
+def passage_refs_for_context_bundle(passage_refs: Iterable[dict[str, Any]]) -> list[dict[str, str]]:
+    refs: list[dict[str, str]] = []
+    for ref in passage_refs:
+        refs.append(
+            {
+                "passage_ref_id": str(ref["passage_ref_id"]),
+                "source_ref_id": str(ref["source_ref_id"]),
+                "text_sha256": str(ref["text_sha256"]),
             }
         )
     return refs

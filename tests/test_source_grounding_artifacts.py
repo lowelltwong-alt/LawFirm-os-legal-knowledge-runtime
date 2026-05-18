@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -15,10 +16,12 @@ from lawfirm_os_legal_knowledge.grounding import (
     SourceGroundingError,
     emit_claim_ref,
     emit_coverage_record,
+    emit_passage_ref,
     emit_source_ref,
     emit_unsupported_claim_validation_failure,
     emit_untrusted_content_anomaly_records,
     emit_verification_record,
+    passage_refs_for_context_bundle,
     refs_for_evidence_packet,
     source_refs_for_context_bundle,
     validate_source_refs,
@@ -261,3 +264,135 @@ def test_pr07_uses_fixtures_only_no_live_api_or_production_data() -> None:
     assert manifest["contains_real_matter_data"] is False
     for doc in manifest["documents"]:
         assert str(doc["source_uri"]).startswith("synthetic://")
+
+
+def test_passage_ref_emitted_from_synthetic_source_matches_schema() -> None:
+    emitted = emit_source_ref(_document(), run_id="run-pr075", retrieved_at=FIXED_AT)
+    doc = _document()
+    span_text = "Section 2.1 — Payment terms net thirty."
+    passage = emit_passage_ref(
+        source_ref_id=emitted.source_ref["source_ref_id"],
+        document=doc,
+        span_text=span_text,
+        run_id="run-pr075",
+        span_type="clause",
+        start_offset=0,
+        end_offset=len(span_text),
+        heading_path=["MSA", "Payment"],
+        citation_label="Synthetic MSA §2.1",
+        provider_metadata={"fixture_layer": "unit_test"},
+    )
+    validate(passage, _schema("passage-ref.schema.json"))
+    assert passage["source_ref_id"] == emitted.source_ref["source_ref_id"]
+    assert passage["source_kind"] == "synthetic_fixture"
+    assert passage["jurisdiction"] == "New York"
+    assert passage["text_sha256"] == hashlib.sha256(span_text.encode("utf-8")).hexdigest()
+    assert passage["canonical_status"] == "external_source_not_canon"
+    assert passage["provider_metadata"]["fixture_layer"] == "unit_test"
+
+
+def test_claim_verification_coverage_link_passage_refs() -> None:
+    emitted = emit_source_ref(_document(), run_id="run-pr075", retrieved_at=FIXED_AT)
+    doc = _document()
+    parent = emit_passage_ref(
+        source_ref_id=emitted.source_ref["source_ref_id"],
+        document=doc,
+        span_text="Parent section synthetic.",
+        run_id="run-pr075",
+        span_type="rule",
+        passage_ref_id="pr-parent-test",
+        heading_path=["Article II"],
+    )
+    child = emit_passage_ref(
+        source_ref_id=emitted.source_ref["source_ref_id"],
+        document=doc,
+        span_text="Child clause synthetic.",
+        run_id="run-pr075",
+        span_type="clause",
+        parent_passage_ref_id=parent["passage_ref_id"],
+        related_passage_ref_ids=[parent["passage_ref_id"]],
+        cites_passage_ref_ids=[parent["passage_ref_id"]],
+    )
+    claim = emit_claim_ref(
+        claim_text="Fixture claim.",
+        source_ref_ids=[emitted.source_ref["source_ref_id"]],
+        run_id="run-pr075",
+        passage_ref_ids=[child["passage_ref_id"], parent["passage_ref_id"]],
+    )
+    verification = emit_verification_record(
+        claim_ref_id=claim["claim_ref_id"],
+        run_id="run-pr075",
+        verified_by_kind="tool",
+        verified_by_id="synthetic-verifier",
+        verdict="verified",
+        passage_ref_ids=[child["passage_ref_id"]],
+        verified_at=FIXED_AT,
+    )
+    cov = emit_coverage_record(
+        source_ref_id=emitted.source_ref["source_ref_id"],
+        run_id="run-pr075",
+        units_requested=10,
+        units_read=4,
+        passage_ref_id=child["passage_ref_id"],
+    )
+    validate(claim, _schema("claim-ref.schema.json"))
+    validate(verification, _schema("verification-record.schema.json"))
+    validate(cov, _schema("coverage-record.schema.json"))
+    assert claim["passage_refs"][0]["passage_ref_id"] == child["passage_ref_id"]
+    assert verification["passage_refs"][0]["passage_ref_id"] == child["passage_ref_id"]
+    assert cov["passage_ref_id"] == child["passage_ref_id"]
+    assert cov["partial_read"] is True
+
+
+def test_emit_passage_ref_rejects_unknown_span_type() -> None:
+    emitted = emit_source_ref(_document(), run_id="run-pr075", retrieved_at=FIXED_AT)
+    with pytest.raises(SourceGroundingError, match="span_type"):
+        emit_passage_ref(
+            source_ref_id=emitted.source_ref["source_ref_id"],
+            document=_document(),
+            span_text="x",
+            run_id="run-pr075",
+            span_type="not_a_registered_span_type",
+        )
+
+
+def test_fixed_token_chunking_not_primary_knowledge_unit() -> None:
+    import lawfirm_os_legal_knowledge.grounding as g
+
+    src = Path(g.__file__).read_text(encoding="utf-8")
+    assert "max_tokens" not in src
+    assert "token_chunk" not in src
+    assert "chunk_size" not in src
+
+
+def test_bundle_and_trace_carry_passage_ref_ids() -> None:
+    emitted = emit_source_ref(_document(), run_id="run-pr075", retrieved_at=FIXED_AT)
+    passage = emit_passage_ref(
+        source_ref_id=emitted.source_ref["source_ref_id"],
+        document=_document(),
+        span_text="Holding paragraph synthetic.",
+        run_id="run-pr075",
+        span_type="holding",
+        start_offset=100,
+        end_offset=140,
+    )
+    trace = build_retrieval_trace(
+        _manifest(),
+        run_id="run-pr075",
+        retrieval_plan_id="plan-1",
+        retrievers_used=["metadata"],
+        source_refs=[emitted.source_ref],
+        passage_refs=[passage],
+    )
+    bundle = assemble_synthetic_context_bundle(
+        _manifest(),
+        bundle_type="contract_review_context.v1",
+        run_id="run-pr075",
+        retrieval_trace_id=trace["retrieval_trace_id"],
+        source_refs=source_refs_for_context_bundle([emitted.source_ref]),
+        passage_refs=passage_refs_for_context_bundle([passage]),
+    )
+    assert trace["result_span_refs"] == [passage["passage_ref_id"]]
+    assert trace["passage_refs"][0]["passage_ref_id"] == passage["passage_ref_id"]
+    assert bundle["controlling_span_refs"] == [passage["passage_ref_id"]]
+    assert bundle["passage_refs"][0]["passage_ref_id"] == passage["passage_ref_id"]

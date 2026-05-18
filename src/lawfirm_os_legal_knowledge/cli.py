@@ -10,7 +10,9 @@ from .contracts import load_substrate_snapshot
 from .evidence import write_evidence_dir, write_runtime_record
 from .grounding import (
     emit_coverage_record,
+    emit_passage_ref,
     emit_source_refs_for_manifest,
+    passage_refs_for_context_bundle,
     refs_for_evidence_packet,
     source_refs_for_context_bundle,
     validate_source_refs,
@@ -112,14 +114,35 @@ def run_assemble_bundle(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     source_ref_failures = validate_source_refs(source_refs)
     if source_ref_failures:
         return EXIT_ARTIFACT, {"status": "blocked", "failures": source_ref_failures}
+    docs = manifest.get("documents") or []
+    passage_records: list[dict[str, Any]] = []
+    for doc, source_ref in zip(docs, source_refs):
+        span_text = (
+            f"Structural passage anchor for {doc['document_ref']}: "
+            f"{str(doc.get('title') or '').strip()}."
+        )
+        passage_records.append(
+            emit_passage_ref(
+                source_ref_id=source_ref["source_ref_id"],
+                document=doc,
+                span_text=span_text,
+                run_id=run_id,
+                span_type="clause",
+                start_offset=0,
+                end_offset=len(span_text),
+                heading_path=[str(doc.get("title") or "document")],
+                provider_metadata={"structural_anchor": True, "emission": "assemble_bundle_cli"},
+            )
+        )
     coverage_records = [
         emit_coverage_record(
             source_ref_id=source_ref["source_ref_id"],
             run_id=run_id,
             units_requested=1,
             units_read=1,
+            passage_ref_id=passage_records[idx]["passage_ref_id"],
         )
-        for source_ref in source_refs
+        for idx, source_ref in enumerate(source_refs)
     ]
     trace = build_retrieval_trace(
         manifest,
@@ -129,6 +152,7 @@ def run_assemble_bundle(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         source_refs=source_refs,
         coverage_records=coverage_records,
         anomaly_records=anomaly_records,
+        passage_refs=passage_records,
     )
     bundle = assemble_synthetic_context_bundle(
         manifest,
@@ -137,6 +161,7 @@ def run_assemble_bundle(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         retrieval_trace_id=trace["retrieval_trace_id"],
         source_refs=source_refs_for_context_bundle(source_refs),
         claim_refs=[],
+        passage_refs=passage_refs_for_context_bundle(passage_records),
     )
     packet_dir = out_root / "evidence"
     evidence_manifest = write_evidence_dir(packet_dir, {
@@ -144,10 +169,12 @@ def run_assemble_bundle(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         "preflight_result.json": preflight.to_dict(),
         "retrieval_trace.json": trace,
         "source_refs.json": source_refs,
+        "passage_refs.json": passage_records,
         "coverage_records.json": coverage_records,
         "untrusted_content_anomaly_records.json": anomaly_records,
         "evidence_packet_refs.json": {
             "source_refs": refs_for_evidence_packet(source_refs, "source_ref_id"),
+            "passage_refs": refs_for_evidence_packet(passage_records, "passage_ref_id"),
             "coverage_records": refs_for_evidence_packet(coverage_records, "coverage_record_id"),
             "untrusted_content_anomaly_records": refs_for_evidence_packet(
                 anomaly_records,
