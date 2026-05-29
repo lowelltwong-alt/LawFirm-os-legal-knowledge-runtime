@@ -36,3 +36,11 @@ python -m lawfirm_os_legal_knowledge assemble-bundle \
 - No provider-specific vector or graph database.
 - No Semantic Substrate writes.
 - No legal finality without human review.
+
+## Context Quality Doctrine Dependency
+
+- Legal Knowledge Runtime assembles Legal Context Bundles under Semantic Substrate contracts, including `../LawFirm-os-semantic-substrate/governance/CONTEXT_QUALITY_DOCTRINE.md`.
+- It may calculate context-quality and uncertainty metrics only when definitions exist in Semantic Substrate.
+- It must not promote institutional knowledge to canon.
+- It must preserve provenance, authority level, scope, review status, stale-after policy, and bundle hashes.
+- Shannon/entropy metrics are measurement tools, not legal-truth claims.

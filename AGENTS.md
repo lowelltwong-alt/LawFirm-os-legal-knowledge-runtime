@@ -67,4 +67,12 @@ Before reporting success, run `python -m pytest -q` in this repository and the A
 - external API calls;
 - silent schema or registry changes;
 - production document ingestion.
+
+## Context Quality Doctrine Dependency
+
+- Legal Knowledge Runtime assembles Legal Context Bundles under Semantic Substrate contracts, including `../LawFirm-os-semantic-substrate/governance/CONTEXT_QUALITY_DOCTRINE.md`.
+- It may calculate context-quality and uncertainty metrics only when definitions exist in Semantic Substrate.
+- It must not promote institutional knowledge to canon.
+- It must preserve provenance, authority level, scope, review status, stale-after policy, and bundle hashes.
+- Shannon/entropy metrics are measurement tools, not legal-truth claims.
 <!-- END REPO_SPECIFIC_INSTRUCTIONS -->
