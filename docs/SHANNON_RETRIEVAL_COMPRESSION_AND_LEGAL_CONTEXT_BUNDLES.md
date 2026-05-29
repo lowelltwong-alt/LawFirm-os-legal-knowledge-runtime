@@ -1,3 +1,13 @@
+---
+artifact: true
+artifact_type: technical_crosswalk
+status: proposed
+canon_status: not_canon_until_approved
+authority: explanatory_only
+review_cycle: 6 months
+stale_after: 2026-11-29
+---
+
 # Shannon Retrieval Compression and Legal Context Bundles
 
 Status: Non-canonical concept note.
@@ -7,7 +17,7 @@ Authority: Explanatory only. Does not authorize real-client data use, modify ing
 
 A Legal Context Bundle is a bounded channel packet. Its job is to preserve enough source-grounded signal for a downstream legal task while staying inside reviewer and validator capacity. Information theory makes this tradeoff precise via channel capacity, rate-distortion, and mutual information: more text is not more information. This note explains the framing; it does not change ingestion behavior, citation policy, or the no-real-client-data boundary.
 
-Master conceptual reference: `../_shared/SHANNON_INFORMATION_THEORY_FOR_AI_GOVERNANCE_MASTER.md` (workspace-shared, non-canonical).
+Conceptual lineage: this note draws on Shannon (1948), Cover & Thomas (*Elements of Information Theory*), and MacKay (*Information Theory, Inference, and Learning Algorithms*); see the **References** section. No file outside this repository is required to read this note.
 
 ## Context Quality Doctrine Dependency
 
@@ -158,4 +168,3 @@ Conceptual only.
 - Claude E. Shannon, "A Mathematical Theory of Communication," 1948.
 - Thomas M. Cover and Joy A. Thomas, *Elements of Information Theory*, Wiley (especially rate-distortion and source coding).
 - David J. C. MacKay, *Information Theory, Inference, and Learning Algorithms*, Cambridge University Press.
-- Workspace-shared master file: `../_shared/SHANNON_INFORMATION_THEORY_FOR_AI_GOVERNANCE_MASTER.md`.
