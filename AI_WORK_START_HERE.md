@@ -49,3 +49,11 @@ If your workspace layout differs, point `--substrate-root` at your `LawFirm-os-s
 
     python -m pytest -q
     python ../LawFirm-os-semantic-substrate/scripts/validate_skill_agent_control_plane.py --workspace ..
+
+## Context Quality Doctrine Dependency
+
+- Legal Knowledge Runtime assembles Legal Context Bundles under Semantic Substrate contracts, including `../LawFirm-os-semantic-substrate/governance/CONTEXT_QUALITY_DOCTRINE.md`.
+- It may calculate context-quality and uncertainty metrics only when definitions exist in Semantic Substrate.
+- It must not promote institutional knowledge to canon.
+- It must preserve provenance, authority level, scope, review status, stale-after policy, and bundle hashes.
+- Shannon/entropy metrics are measurement tools, not legal-truth claims.
