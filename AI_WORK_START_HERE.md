@@ -37,6 +37,12 @@ This repo is **LawFirm-os-legal-knowledge-runtime** (local-first legal knowledge
 If your workspace layout differs, point `--substrate-root` at your `LawFirm-os-semantic-substrate` checkout.
 <!-- END REPO_SPECIFIC_INSTRUCTIONS -->
 
+## Governance Dependency-Map Mirror
+
+If this repo changes governance-facing files, check the upstream `../LawFirm-os-semantic-substrate/registry/governance-dependency-map.json` and update `.ai/control/governance-dependency-map-mirror.json`, local discovery surfaces, and `scripts/validate_governance_dependency_map_mirror.py` when affected.
+
+The governance dependency-map mirror is downstream enforcement only. It cannot override Semantic Substrate governance, define canonical schemas or registries, treat retrieval/model output as legal truth, store raw legal payloads, or authorize production automation.
+
 ## Skill-Agent Control Plane References
 
 - skill-agent-manifest.json
