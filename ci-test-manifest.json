@@ -12,7 +12,7 @@
       "framework": "pytest",
       "artifact_type": "pytest_file",
       "path": "tests/test_ingestion_preflight.py",
-      "runner_command": "python -m pytest tests/test_ingestion_preflight.py -q",
+      "runner_command": "python scripts/run_full_pytest.py tests/test_ingestion_preflight.py -q",
       "owning_repo": "LawFirm-os-legal-knowledge-runtime",
       "owning_plane": "legal_knowledge_runtime",
       "architecture_surface": [
@@ -53,7 +53,7 @@
       "framework": "pytest",
       "artifact_type": "pytest_file",
       "path": "tests/test_research_delta_helpers.py",
-      "runner_command": "python -m pytest tests/test_research_delta_helpers.py -q",
+      "runner_command": "python scripts/run_full_pytest.py tests/test_research_delta_helpers.py -q",
       "owning_repo": "LawFirm-os-legal-knowledge-runtime",
       "owning_plane": "legal_knowledge_runtime",
       "architecture_surface": [
@@ -84,6 +84,209 @@
       "must_not_validate": [
         "canonical semantic authority outside Semantic Substrate",
         "promotion authority without governance decision"
+      ],
+      "expected_runtime_seconds": 5,
+      "full_regression_required": false
+    },
+    {
+      "test_id": "LawFirm-os-legal-knowledge-runtime.tests.test_source_grounding_artifacts.v1",
+      "language": "python",
+      "framework": "pytest",
+      "artifact_type": "pytest_file",
+      "path": "tests/test_source_grounding_artifacts.py",
+      "runner_command": "python scripts/run_full_pytest.py tests/test_source_grounding_artifacts.py -q",
+      "owning_repo": "LawFirm-os-legal-knowledge-runtime",
+      "owning_plane": "legal_knowledge_runtime",
+      "architecture_surface": [
+        "legal_knowledge_runtime",
+        "source_grounding",
+        "legal_knowledge_context_bundle"
+      ],
+      "risk_tier": "protected",
+      "change_classes_covered": [
+        "test_artifact_change",
+        "source_grounding_change",
+        "legal_knowledge_runtime_change",
+        "cross_repo_integration_change"
+      ],
+      "trigger_patterns": [
+        "tests/test_source_grounding_artifacts.py",
+        "src/lawfirm_os_legal_knowledge/grounding.py",
+        "src/lawfirm_os_legal_knowledge/bundle.py",
+        "../LawFirm-os-semantic-substrate/schemas/source-ref.schema.json",
+        "../LawFirm-os-semantic-substrate/schemas/passage-ref.schema.json",
+        "../LawFirm-os-semantic-substrate/schemas/claim-ref.schema.json"
+      ],
+      "markers": [
+        "pytest",
+        "legal_knowledge_runtime",
+        "source_grounding",
+        "protected"
+      ],
+      "upstream_dependencies": [
+        "LawFirm-os-semantic-substrate",
+        "LawFirm-os-orchestrator",
+        "LawFirm-os-exceptions-lake-runtime"
+      ],
+      "downstream_dependencies": [
+        "LawFirm-os-intake"
+      ],
+      "must_run_when": [
+        "source, passage, claim, coverage, verification, retrieval trace, or bundle helpers change",
+        "router selects legal knowledge context bundle architecture surface"
+      ],
+      "must_not_validate": [
+        "canonical semantic authority outside Semantic Substrate",
+        "raw legal payload fanout",
+        "legal truth from retrieval output"
+      ],
+      "expected_runtime_seconds": 10,
+      "full_regression_required": false
+    },
+    {
+      "test_id": "LawFirm-os-legal-knowledge-runtime.tests.test_intake_context_bundle_review.v1",
+      "language": "python",
+      "framework": "pytest",
+      "artifact_type": "pytest_file",
+      "path": "tests/test_intake_context_bundle_review.py",
+      "runner_command": "python scripts/run_full_pytest.py tests/test_intake_context_bundle_review.py -q",
+      "owning_repo": "LawFirm-os-legal-knowledge-runtime",
+      "owning_plane": "legal_knowledge_runtime",
+      "architecture_surface": [
+        "legal_knowledge_runtime",
+        "intake_context_bundle_review",
+        "labor_employment_budget_context",
+        "candidate_only_governance"
+      ],
+      "risk_tier": "protected",
+      "change_classes_covered": [
+        "test_artifact_change",
+        "governance_metadata_change",
+        "legal_knowledge_runtime_change",
+        "cross_repo_integration_change"
+      ],
+      "trigger_patterns": [
+        "registry/intake-context-bundle-review-registry.json",
+        "docs/INTAKE_CONTEXT_BUNDLE_REVIEW.md",
+        "scripts/validate_intake_context_bundle_review.py",
+        "tests/test_intake_context_bundle_review.py"
+      ],
+      "markers": [
+        "pytest",
+        "legal_knowledge_runtime",
+        "intake",
+        "labor_employment",
+        "budget_context",
+        "candidate_only",
+        "protected"
+      ],
+      "upstream_dependencies": [
+        "LawFirm-os-semantic-substrate",
+        "LawFirm-os-intake"
+      ],
+      "downstream_dependencies": [
+        "LawFirm-os-orchestrator",
+        "LawFirm-os-exceptions-lake-runtime"
+      ],
+      "must_run_when": [
+        "intake-to-legal-knowledge context-bundle review surfaces change",
+        "L&E budget context or missing-info evidence policy changes"
+      ],
+      "must_not_validate": [
+        "canonical schema or taxonomy creation",
+        "raw legal payload storage",
+        "real-data ingestion approval",
+        "budget approval or matter opening"
+      ],
+      "expected_runtime_seconds": 5,
+      "full_regression_required": false
+    },
+    {
+      "test_id": "LawFirm-os-legal-knowledge-runtime.tests.test_validation_runtime_policy.v1",
+      "language": "python",
+      "framework": "pytest",
+      "artifact_type": "pytest_file",
+      "path": "tests/test_validation_runtime_policy.py",
+      "runner_command": "python scripts/run_full_pytest.py tests/test_validation_runtime_policy.py -q",
+      "owning_repo": "LawFirm-os-legal-knowledge-runtime",
+      "owning_plane": "legal_knowledge_runtime",
+      "architecture_surface": [
+        "validation_runtime_policy",
+        "ci_test_manifest",
+        "agent_validation_surface"
+      ],
+      "risk_tier": "protected",
+      "change_classes_covered": [
+        "test_artifact_change",
+        "ci_change",
+        "validation_policy_change",
+        "agent_instruction_change"
+      ],
+      "trigger_patterns": [
+        "config/validation-runtime-policy.yaml",
+        "scripts/run_full_pytest.py",
+        "tests/conftest.py",
+        "tests/test_validation_runtime_policy.py",
+        "ci-test-manifest.json",
+        ".github/workflows/ci.yml"
+      ],
+      "markers": [
+        "pytest",
+        "legal_knowledge_runtime",
+        "validation_runtime_policy",
+        "protected"
+      ],
+      "upstream_dependencies": [],
+      "downstream_dependencies": [],
+      "must_run_when": [
+        "pytest validation command surfaces change",
+        "CI test manifest or agent pytest instructions change"
+      ],
+      "must_not_validate": [
+        "short default pytest timeout as a successful full regression",
+        "direct pytest invocation without the policy marker"
+      ],
+      "expected_runtime_seconds": 5,
+      "full_regression_required": false
+    },
+    {
+      "test_id": "LawFirm-os-legal-knowledge-runtime.tests.test_governance_dependency_map_mirror.v1",
+      "language": "python",
+      "framework": "unittest",
+      "artifact_type": "unittest_file",
+      "path": "tests/test_governance_dependency_map_mirror.py",
+      "runner_command": "python -m unittest discover -s tests -p 'test_governance_dependency_map_mirror.py'",
+      "owning_repo": "LawFirm-os-legal-knowledge-runtime",
+      "owning_plane": "legal_knowledge_runtime",
+      "architecture_surface": [
+        "governance_dependency_map_mirror",
+        "legal_knowledge_runtime"
+      ],
+      "risk_tier": "protected",
+      "change_classes_covered": [
+        "test_artifact_change",
+        "governance_metadata_change"
+      ],
+      "trigger_patterns": [
+        ".ai/control/governance-dependency-map-mirror.json",
+        "scripts/validate_governance_dependency_map_mirror.py",
+        "tests/test_governance_dependency_map_mirror.py"
+      ],
+      "markers": [
+        "unittest",
+        "legal_knowledge_runtime",
+        "governance_map_mirror",
+        "protected"
+      ],
+      "upstream_dependencies": [
+        "LawFirm-os-semantic-substrate"
+      ],
+      "downstream_dependencies": [],
+      "must_run_when": [
+        "governance dependency-map mirror surfaces change"
+      ],
+      "must_not_validate": [
+        "local override of Semantic Substrate governance authority"
       ],
       "expected_runtime_seconds": 5,
       "full_regression_required": false
