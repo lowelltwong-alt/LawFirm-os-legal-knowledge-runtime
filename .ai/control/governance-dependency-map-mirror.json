@@ -2,7 +2,7 @@
   "object_type": "governance_dependency_map_mirror",
   "trust_zone": "downstream_control",
   "lifecycle_status": "active",
-  "provenance_note": "Created 2026-06-29 to mirror the upstream LawFirm OS governance dependency-map update gate inside LawFirm-os-legal-knowledge-runtime. Updated 2026-06-30 for the intake context-bundle review docket and deterministic pytest runtime policy.",
+  "provenance_note": "Created 2026-06-29 to mirror the upstream LawFirm OS governance dependency-map update gate inside LawFirm-os-legal-knowledge-runtime. Updated 2026-06-30 for the intake context-bundle review docket and deterministic pytest runtime policy, including the 3600 second wrapper floor for full and focused pytest.",
   "reason_for_inclusion": "Force legal-knowledge-runtime governance changes to check the upstream governance dependency map and local mirror surfaces instead of relying on local retrieval convenience.",
   "schema_version": "governance_dependency_map_mirror.v1",
   "mirror_id": "lawfirm_os_legal_knowledge_runtime_governance_dependency_map_mirror",
