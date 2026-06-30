@@ -9,12 +9,12 @@ contains_real_firm_data: false
 commands:
   full_pytest:
     command: python -m pytest -q
-    minimum_timeout_seconds: 1800
-    reason: Full suite may initialize substrate/schema fixtures and cross-repo helper imports.
+    minimum_timeout_seconds: 3600
+    reason: Full suite may initialize substrate/schema fixtures and cross-repo helper imports; use the deterministic long ceiling to avoid reruns from shorter local tool ceilings.
     wrapper: python scripts/run_full_pytest.py
   focused_pytest:
     command: python -m pytest <paths> -q
-    minimum_timeout_seconds: 1800
+    minimum_timeout_seconds: 3600
     reason: Focused tests may still load substrate schemas and should not inherit a short or stale ceiling.
     wrapper: python scripts/run_full_pytest.py <paths> -q
 
