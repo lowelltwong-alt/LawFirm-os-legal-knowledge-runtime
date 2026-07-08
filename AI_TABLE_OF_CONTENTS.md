@@ -42,3 +42,14 @@ This repo assembles legal ingestion preflight records, retrieval plans, and Lega
 - L&E entity, role, relationship, budget-driver, and missing-info signals are local review labels, not canonical legal taxonomies.
 - Every observed fact must remain source-bound through source refs, passage refs, claim refs, retrieval traces, and bundle hashes.
 - The candidate docket does not authorize real data, raw legal payload storage, production connectors, Semantic Substrate writes, legal truth, budget approval, or matter opening.
+
+<!-- BEGIN DIGITAL_ASSET_DIRECTORY_TOC_ROWS -->
+| Path | What It Is | Tags | Use When |
+| --- | --- | --- | --- |
+| `.digital-asset/dad-integration.json` | Versioned DAD enrollment contract and approved write boundary. | dad, enrollment, governance | Confirm DAD cadence, control planes, approval IDs, and managed paths. |
+| `.digital-asset/context-map.json` | Repo context to DAD asset/control-plane route map. | dad, context, assets | Choose relevant DAD assets, skills, templates, or architecture references for a task. |
+| `.digital-asset/governance-map.yaml` | Repo-local governance dependency mirror. | governance, authority, dependencies | Check local authority boundaries and DAD-managed surfaces. |
+| `.digital-asset/data-map.yaml` | Repo-local sensitive-boundary and data-movement map. | data-map, privacy, release | Check what data can move through DAD mail or public-facing release paths. |
+| `.digital-asset/mail/` | Candidate-only DAD inbox/outbox/archive. | mail, suggestions, daily | Read or send cross-repo suggestions without mutating source authority. |
+| `.digital-asset/assets/index.jsonl` | Repo-local metadata-only digital asset cards using compact DAD address layers. | assets, address-model, learning | Record source-owned asset pointers, workflow refs, validation refs, and learning deltas without copying private content. |
+<!-- END DIGITAL_ASSET_DIRECTORY_TOC_ROWS -->
